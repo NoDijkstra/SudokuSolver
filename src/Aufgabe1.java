@@ -6,9 +6,11 @@ import codedraw.CodeDraw;
 import codedraw.Palette;
 import codedraw.textformat.HorizontalAlign;
 import codedraw.textformat.TextFormat;
+import org.w3c.dom.ls.LSOutput;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Aufgabe1 {
@@ -26,7 +28,7 @@ public class Aufgabe1 {
             Scanner myFileReader = new Scanner(new File(filename));
             // TODO: Implementieren Sie hier Ihre Lösung für die Methode
             // *********************************************************
-            while (myFileReader.hasNextLine()){
+            while (myFileReader.hasNextLine()) {
                 for (int i = 0; i < array.length; i++) {
                     //Iteriere über filename und lösche ASCII ;
                     String[] values = myFileReader.nextLine().trim().split(";");
@@ -51,6 +53,8 @@ public class Aufgabe1 {
                 for (int num = 1; num <= sSize; num++) {
                     if (!isNumUsedInRow(sudokuField, num, idx / sSize) && !isNumUsedInCol(sudokuField, num, idx % sSize) && !isNumUsedInBox(sudokuField, num, idx / sSize - ((idx / sSize) % subSize), idx % sSize - ((idx % sSize) % subSize))) {
                         sudokuField[idx / sSize][idx % sSize] = num;
+                        //Speichert ab, wie oft beim Lösen des Rätsels eine Ziffer auf eine bestimmte Stelle überschrieben wird. 0 = never changed.
+                        heatMap[idx / sSize][idx % sSize]++;
                         if (solveSudoku(sudokuField, idx + 1)) {
                             return true;
                         } else {
@@ -74,7 +78,7 @@ public class Aufgabe1 {
         //Iterieren innerhalb dieser Box + 3
         for (int i = rowBox; i < rowBox + subSize; i++) {
             for (int j = colBox; j < colBox + subSize; j++) {
-                if (sudokuField[i][j] == num){
+                if (sudokuField[i][j] == num) {
                     return true;
                 }
             }
@@ -85,7 +89,7 @@ public class Aufgabe1 {
     private static boolean isNumUsedInRow(int[][] sudokuField, int num, int row) {
         // TODO: Implementieren Sie hier Ihre Lösung für die Methode
         for (int i = 0; i < sSize; i++) {
-            if (sudokuField[row][i] == num){
+            if (sudokuField[row][i] == num) {
                 return true;
             }
         }
@@ -95,47 +99,63 @@ public class Aufgabe1 {
     private static boolean isNumUsedInCol(int[][] sudokuField, int num, int col) {
         // TODO: Implementieren Sie hier Ihre Lösung für die Methode
         for (int i = 0; i < sSize; i++) {
-            if (sudokuField[i][col] == num){
-                    return true;
+            if (sudokuField[i][col] == num) {
+                return true;
             }
         }
         return false; //Zeile kann geändert oder entfernt werden.
     }
 
-    private static boolean isValidSudokuSolution(int[][] sudokuField) {
+    private static boolean isValidSudokuSolution(int[][] sudokuField, int num, int row, int col) {
         // TODO: Implementieren Sie hier Ihre Lösung für die Methode
-        int num = 0;
-        int row = 0;
-        int col = 0;
+        //return !solveSudoku(sudokuField, 0);
         return !isNumUsedInBox(sudokuField, num, row, col) && !isNumUsedInRow(sudokuField, num, row) && !isNumUsedInCol(sudokuField, num, col);
     }
 
     private static void drawSudokuField(CodeDraw myDrawObj, int[][] sudokuField) {
         // TODO: Implementieren Sie hier Ihre Lösung für die Methode
+        //Array in CodeDraw implementieren
         int SIZE = sSize * cellSize;
-        int row = 3;
-        int col = 3;
-        int rowBox = row - row % 3;
-        int colBox = col - col % 3;
-        for (int i = rowBox; i < rowBox + subSize; i++) {
-            for (int j = colBox; j < colBox + subSize; j++) {
-                if (rowBox % 3 == 0){
-                    myDrawObj.fillSquare(cellSize, cellSize, cellSize);
-                    myDrawObj.setColor(Palette.ORANGE);
-                } else {
-                    myDrawObj.setColor(Palette.PINK);
-                }
+        int sideLength = 120;
 
+        //Färben des Canvas
+        //ROSA: wenn Size modulo 2 == 0;
+        //ORANGE: andernfalls
+        for (int i = 0; i <= 2; i++) {
+            for (int j = 0; j <= 2; j++) {
+                int canvasPositionX = 120 * i;
+                int canvasPositionY = 120 * j;
+                if ((i + j) % 2 == 0) {
+                    myDrawObj.setColor(Color.PINK);
+                } else {
+                    myDrawObj.setColor(Color.ORANGE);
+                }
+                myDrawObj.fillSquare(canvasPositionX, canvasPositionY, sideLength);
+            }
+
+        }
+
+        //Print numbers inside Canvas
+        for (int i = 0; i < sudokuField.length; i++) {
+            for (int j = 0; j < sudokuField[i].length; j++) {
+                int offsetCanvas = 20;
+                int offsetX = offsetCanvas + j * cellSize;
+                int offsetY = offsetCanvas + i * cellSize;
+                myDrawObj.setColor(Palette.BLACK);
+                myDrawObj.drawText(offsetX, offsetY, String.valueOf(sudokuField[i][j]));
             }
         }
+
+        //Draw Lines inside Canvas
         myDrawObj.setLineWidth(3);
         for (int i = 0; i < SIZE; i++) {
-            int offset = i * cellSize;
-            myDrawObj.drawLine(offset, 0, offset, SIZE);
-            for (int j = 0; j < SIZE; j++) {
-                myDrawObj.drawLine(0, offset, SIZE, offset);
-            }
+            int offsetLine = i * cellSize;
+            myDrawObj.setColor(Palette.BLACK);
+            myDrawObj.drawLine(offsetLine, 0, offsetLine, SIZE);
+            myDrawObj.drawLine(0, offsetLine, SIZE, offsetLine);
+
         }
+
         myDrawObj.setCanvasPositionX(1300);
         myDrawObj.show();
     }
@@ -157,7 +177,7 @@ public class Aufgabe1 {
         format.setFontSize(16);
         format.setHorizontalAlign(HorizontalAlign.CENTER);
 
-        String filename = "./src/sudoku2.csv"; //sudoku0.csv - sudoku7.csv available!
+        String filename = "./src/sudoku6.csv"; //sudoku0.csv - sudoku7.csv available!
         System.out.println("Reading " + filename + " ...");
         int[][] sudokuField = readArrayFromFile(filename);
         printArray(sudokuField);
@@ -165,15 +185,16 @@ public class Aufgabe1 {
         System.out.println("Solving Sudoku ...");
         solveSudoku(sudokuField, 0);
         printArray(sudokuField);
-        System.out.println("Valid solution: " + isValidSudokuSolution(sudokuField));
+        int num = 0;
+        int col = 0;
+        int row = 0;
+        System.out.println("Valid solution: " + isValidSudokuSolution(sudokuField, num, row, col));
         System.out.println();
 
         drawSudokuField(myDrawObj, sudokuField);
 
         System.out.println("Results of the heatMap:");
         printArray(heatMap);
-
-
     }
 }
 
