@@ -107,6 +107,8 @@ public class Aufgabe1 {
 
     private static boolean isValidSudokuSolution(int[][] sudokuField) {
         // TODO: Implementieren Sie hier Ihre Lösung für die Methode
+        //Lösung mit Hilfe der Heatmap
+        /*
         for (int[] ints : heatMap) {
             for (int num : ints) {
                 if (num != 0)
@@ -114,6 +116,8 @@ public class Aufgabe1 {
             }
         }//end of for Statement
         return false;
+         */
+        //Lösung mit Hilfe von HashSet
         /*
         HashSet<String> found = new HashSet();
         for (int row = 0; row < sSize; row++) {
@@ -126,6 +130,22 @@ public class Aufgabe1 {
         return true;
          */
 
+        //Iteriere einmal über alle Zahlen welche in sudoku existieren dürfen
+        for (int num = 1; num <= sSize; num++) {
+            //itereriere über Row
+            for (int row = 0; row < sSize; row++) {
+                //Wir unterteilen unsere 9x9Matrix in eine 3x3 Matrize.
+                if (row % subSize == 0) {
+                    for (int col = 0; col < sSize; col += subSize) {
+                        if (!isNumUsedInBox(sudokuField, num, row, col)) return false;
+                    }
+                }//end of rowbox for-Statement
+                for (int col = 0; col < sSize; col++) {
+                    if (!isNumUsedInRow(sudokuField, num, row) && (!isNumUsedInCol(sudokuField, num, col))) return false;
+                }
+            }
+        }//end of for Statement
+        return true;
     }//end of method
 
     private static void drawSudokuField(CodeDraw myDrawObj, int[][] sudokuField) {
@@ -135,8 +155,8 @@ public class Aufgabe1 {
         int sideLength = 120;
 
         //Färben des Canvas
-        //ROSA: i+j = gerade;
-        //ORANGE: i+j = ungerade
+        //ROSA: i+j = ungerade;
+        //ORANGE: i+j = gerade
         for (int i = 0; i <= 2; i++) {
             for (int j = 0; j <= 2; j++) {
                 int canvasPositionX = 120 * i;
@@ -192,7 +212,7 @@ public class Aufgabe1 {
         format.setFontSize(16);
         format.setHorizontalAlign(HorizontalAlign.CENTER);
 
-        String filename = "./src/sudoku5.csv"; //sudoku0.csv - sudoku7.csv available!
+        String filename = "./src/sudoku4.csv"; //sudoku0.csv - sudoku7.csv available!
         //Title of Canvas
         //Iterate through filename and search for an INTEGER in String
         for (char i : filename.toCharArray()) {
